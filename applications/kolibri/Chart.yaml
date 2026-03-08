@@ -1,0 +1,6 @@
+apiVersion: v2
+name: kolibri
+description: Kolibri learning platform with OIDC-ready container
+type: application
+version: 0.1.0
+appVersion: "0.16.0"

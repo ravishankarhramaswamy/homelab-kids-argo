@@ -1,0 +1,21 @@
+{{- if .Values.gateway.enabled }}
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: moodle
+  labels:
+    app.kubernetes.io/part-of: kids-games
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/name: moodle
+spec:
+  parentRefs:
+    - name: {{ .Values.gateway.name }}
+      namespace: {{ .Values.gateway.namespace }}
+      sectionName: {{ .Values.gateway.sectionName }}
+  hostnames:
+    - {{ .Values.gateway.host }}
+  rules:
+    - backendRefs:
+        - name: {{ .Values.gateway.serviceName }}
+          port: {{ .Values.gateway.servicePort }}
+{{- end }}

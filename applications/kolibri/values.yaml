@@ -1,0 +1,57 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/ravishankarhramaswamy/homelab-kids-kolibri
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+fullnameOverride: kolibri
+
+service:
+  type: ClusterIP
+  port: 8080
+
+gateway:
+  enabled: true
+  name: family-gateway
+  namespace: envoy-gateway-system
+  sectionName: https
+  host: kolibri.family.home.arpa
+  serviceName: kolibri
+  servicePort: 8080
+
+persistence:
+  enabled: true
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  storageClass: ""
+  mountPath: /root/.kolibri
+
+kolibri:
+  runMigrations: true
+
+# Non-secret OIDC configuration
+# Client secret is loaded from the existing secret below.
+oidc:
+  enabled: true
+  issuerURL: https://keycloak.family.home.arpa/realms/homelab
+  clientID: homelab-apps
+  redirectURL: https://kolibri.family.home.arpa/oidc/callback
+  scopes: "openid profile email"
+  allowedGroups: ""
+  existingSecret: kolibri-oidc
+  clientSecretKey: client-secret
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+extraEnv: []

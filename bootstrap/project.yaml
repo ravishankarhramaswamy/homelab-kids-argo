@@ -1,0 +1,33 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: kids-games
+  namespace: argocd
+  labels:
+    app.kubernetes.io/part-of: kids-games
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/name: kids-games
+  annotations:
+    argocd.argoproj.io/sync-wave: "0"
+spec:
+  description: Apps for the kids-games homelab stack
+  sourceRepos:
+    # Replace with your Git URL (HTTPS or SSH)
+    - https://github.com/ravishankarhramaswamy/homelab-kids-argo.git
+  destinations:
+    - namespace: games-moodle
+      server: https://kubernetes.default.svc
+    - namespace: games-kolibri
+      server: https://kubernetes.default.svc
+    - namespace: games-virtualtabletop
+      server: https://kubernetes.default.svc
+    - namespace: games-openedx
+      server: https://kubernetes.default.svc
+    - namespace: keycloak
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: "*"
+      kind: "*"

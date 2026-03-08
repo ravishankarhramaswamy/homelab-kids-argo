@@ -1,0 +1,18 @@
+{{- if .Values.oauth2Proxy.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "virtualtabletop.fullname" . }}-oauth2-proxy
+  labels:
+    {{- include "virtualtabletop.labels" . | nindent 4 }}
+    app.kubernetes.io/component: oauth2-proxy
+data:
+  OAUTH2_PROXY_PROVIDER: "{{ .Values.oauth2Proxy.provider }}"
+  OAUTH2_PROXY_OIDC_ISSUER_URL: "{{ .Values.oauth2Proxy.oidc.issuerURL }}"
+  OAUTH2_PROXY_CLIENT_ID: "{{ .Values.oauth2Proxy.oidc.clientID }}"
+  OAUTH2_PROXY_REDIRECT_URL: "https://{{ .Values.gateway.host }}/oauth2/callback"
+  OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:{{ .Values.oauth2Proxy.port }}"
+  OAUTH2_PROXY_UPSTREAMS: "http://{{ include \"virtualtabletop.fullname\" . }}:{{ .Values.service.port }}"
+  OAUTH2_PROXY_COOKIE_DOMAIN: "{{ .Values.oauth2Proxy.cookie.domain }}"
+  OAUTH2_PROXY_COOKIE_SECURE: "{{ .Values.oauth2Proxy.cookie.secure }}"
+  OAUTH2_PROXY_EMAIL_DOMAINS: "{{ join "," .Values.oauth2Proxy.emailDomains }}"

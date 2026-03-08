@@ -1,0 +1,59 @@
+replicaCount: 1
+
+image:
+  repository: beyondrealm/virtualtabletop
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+fullnameOverride: virtualtabletop
+
+service:
+  type: ClusterIP
+  port: 8080
+
+gateway:
+  enabled: true
+  name: family-gateway
+  namespace: envoy-gateway-system
+  sectionName: https
+  host: boardgames.family.home.arpa
+  serviceName: virtualtabletop
+  servicePort: 8080
+
+# oauth2-proxy is deployed alongside the app and protected by the same hostname.
+oauth2Proxy:
+  enabled: true
+  image:
+    repository: quay.io/oauth2-proxy/oauth2-proxy
+    tag: "v7.6.0"
+    pullPolicy: IfNotPresent
+  port: 4180
+  provider: oidc
+  oidc:
+    issuerURL: https://keycloak.family.home.arpa/realms/homelab
+    clientID: homelab-apps
+    existingSecret: virtualtabletop-oauth2-proxy
+    clientSecretKey: client-secret
+    cookieSecretKey: cookie-secret
+    allowedGroups: []
+  cookie:
+    domain: family.home.arpa
+    secure: true
+  emailDomains:
+    - "*"
+  extraArgs: []
+  resources:
+    requests:
+      cpu: 50m
+      memory: 128Mi
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

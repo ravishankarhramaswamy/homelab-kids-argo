@@ -1,0 +1,6 @@
+apiVersion: v2
+name: virtualtabletop
+description: VirtualTabletop with oauth2-proxy protection
+type: application
+version: 0.1.0
+appVersion: "latest"

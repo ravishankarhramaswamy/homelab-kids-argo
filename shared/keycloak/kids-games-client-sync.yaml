@@ -1,0 +1,300 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kids-games-keycloak-client-sync
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/part-of: kids-games
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/name: keycloak-clients
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+data:
+  sync.py: |
+    import json
+    import os
+    import sys
+    import ssl
+    import urllib.parse
+    import urllib.request
+
+    def env(name, default=None, required=False):
+      val = os.getenv(name, default)
+      if required and not val:
+        print(f"Missing required env: {name}", file=sys.stderr)
+        sys.exit(1)
+      return val
+
+    keycloak_url = env("KEYCLOAK_URL", "https://keycloak.family.home.arpa")
+    admin_realm = env("KEYCLOAK_ADMIN_REALM", "master")
+    realm = env("KEYCLOAK_REALM", "homelab")
+    client_id = env("KEYCLOAK_CLIENT_ID", "homelab-apps")
+    admin_user = env("KEYCLOAK_ADMIN_USER", required=True)
+    admin_password = env("KEYCLOAK_ADMIN_PASSWORD", required=True)
+    client_secret = env("KEYCLOAK_CLIENT_SECRET", "")
+    insecure_skip_verify = env("KEYCLOAK_INSECURE_SKIP_VERIFY", "true").lower() in ("1", "true", "yes")
+    ca_bundle = env("KEYCLOAK_CA_BUNDLE", "")
+
+    def build_ssl_context():
+      if keycloak_url.startswith("https://"):
+        if insecure_skip_verify:
+          return ssl._create_unverified_context()
+        if ca_bundle:
+          return ssl.create_default_context(cadata=ca_bundle)
+        return ssl.create_default_context()
+      return None
+
+    ssl_ctx = build_ssl_context()
+
+    desired_redirect_uris = json.loads(env("DESIRED_REDIRECT_URIS", "[]"))
+    desired_web_origins = json.loads(env("DESIRED_WEB_ORIGINS", "[]"))
+
+    def http_request(method, url, data=None, headers=None):
+      if headers is None:
+        headers = {}
+      if data is not None and not isinstance(data, (bytes, bytearray)):
+        data = json.dumps(data).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+      req = urllib.request.Request(url, data=data, headers=headers, method=method)
+      with urllib.request.urlopen(req, timeout=30, context=ssl_ctx) as resp:
+        body = resp.read()
+        if not body:
+          return None
+        return json.loads(body.decode("utf-8"))
+
+    def token_request():
+      token_url = f"{keycloak_url}/realms/{admin_realm}/protocol/openid-connect/token"
+      form = urllib.parse.urlencode({
+        "grant_type": "password",
+        "client_id": "admin-cli",
+        "username": admin_user,
+        "password": admin_password,
+      }).encode("utf-8")
+      req = urllib.request.Request(token_url, data=form, method="POST")
+      req.add_header("Content-Type", "application/x-www-form-urlencoded")
+      with urllib.request.urlopen(req, timeout=30, context=ssl_ctx) as resp:
+        body = resp.read().decode("utf-8")
+        return json.loads(body)["access_token"]
+
+    token = token_request()
+    headers = {"Authorization": f"Bearer {token}"}
+
+    def get_clients():
+      url = f"{keycloak_url}/admin/realms/{realm}/clients?clientId={urllib.parse.quote(client_id)}"
+      return http_request("GET", url, headers=headers) or []
+
+    def get_client(cid):
+      url = f"{keycloak_url}/admin/realms/{realm}/clients/{cid}"
+      return http_request("GET", url, headers=headers)
+
+    def update_client(cid, payload):
+      url = f"{keycloak_url}/admin/realms/{realm}/clients/{cid}"
+      http_request("PUT", url, data=payload, headers=headers)
+
+    def create_client(payload):
+      url = f"{keycloak_url}/admin/realms/{realm}/clients"
+      http_request("POST", url, data=payload, headers=headers)
+
+    def merge_list(existing, desired):
+      merged = list(existing or [])
+      for item in desired:
+        if item not in merged:
+          merged.append(item)
+      return merged
+
+    clients = get_clients()
+
+    if not clients:
+      if not client_secret:
+        print("Client does not exist and KEYCLOAK_CLIENT_SECRET is empty.", file=sys.stderr)
+        sys.exit(1)
+      payload = {
+        "clientId": client_id,
+        "name": client_id,
+        "secret": client_secret,
+        "publicClient": False,
+        "standardFlowEnabled": True,
+        "directAccessGrantsEnabled": True,
+        "redirectUris": desired_redirect_uris,
+        "webOrigins": desired_web_origins,
+      }
+      create_client(payload)
+      print(f"Created client {client_id} with desired redirect URIs and web origins.")
+      sys.exit(0)
+
+    client = clients[0]
+    cid = client.get("id")
+    if not cid:
+      print("Client id not found in Keycloak response.", file=sys.stderr)
+      sys.exit(1)
+
+    full = get_client(cid)
+    if not full:
+      print("Failed to fetch client representation.", file=sys.stderr)
+      sys.exit(1)
+
+    new_redirects = merge_list(full.get("redirectUris", []), desired_redirect_uris)
+    new_origins = merge_list(full.get("webOrigins", []), desired_web_origins)
+
+    if new_redirects == full.get("redirectUris", []) and new_origins == full.get("webOrigins", []):
+      print("Client already contains desired redirect URIs and web origins. No changes.")
+      sys.exit(0)
+
+    full["redirectUris"] = new_redirects
+    full["webOrigins"] = new_origins
+    update_client(cid, full)
+    print("Updated client with merged redirect URIs and web origins.")
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kids-games-keycloak-client-sync
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/part-of: kids-games
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/name: keycloak-clients
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+    argocd.argoproj.io/hook: Sync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation,HookSucceeded
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/part-of: kids-games
+        app.kubernetes.io/managed-by: argocd
+        app.kubernetes.io/name: keycloak-clients
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - name: client-sync
+          image: python:3.11-alpine
+          imagePullPolicy: IfNotPresent
+          command: ["python", "/app/sync.py"]
+          env:
+            - name: KEYCLOAK_URL
+              value: https://keycloak.family.home.arpa
+            - name: KEYCLOAK_ADMIN_REALM
+              value: master
+            - name: KEYCLOAK_REALM
+              value: homelab
+            - name: KEYCLOAK_CLIENT_ID
+              value: homelab-apps
+            - name: KEYCLOAK_INSECURE_SKIP_VERIFY
+              value: "true"
+            - name: KEYCLOAK_CA_BUNDLE
+              valueFrom:
+                configMapKeyRef:
+                  name: keycloak-oidc-ca
+                  key: ca.crt
+                  optional: true
+            - name: DESIRED_REDIRECT_URIS
+              value: >-
+                ["https://moodle.family.home.arpa/*", "https://kolibri.family.home.arpa/*", "https://boardgames.family.home.arpa/*", "https://openedx.family.home.arpa/*", "https://studio.openedx.family.home.arpa/*"]
+            - name: DESIRED_WEB_ORIGINS
+              value: >-
+                ["https://moodle.family.home.arpa", "https://kolibri.family.home.arpa", "https://boardgames.family.home.arpa", "https://openedx.family.home.arpa", "https://studio.openedx.family.home.arpa"]
+            - name: KEYCLOAK_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-initial-admin
+                  key: username
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-initial-admin
+                  key: password
+            - name: KEYCLOAK_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-oidc-client
+                  key: client-secret
+                  optional: true
+          volumeMounts:
+            - name: script
+              mountPath: /app
+              readOnly: true
+      volumes:
+        - name: script
+          configMap:
+            name: kids-games-keycloak-client-sync
+            defaultMode: 0555
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: kids-games-keycloak-client-sync
+  namespace: keycloak
+  labels:
+    app.kubernetes.io/part-of: kids-games
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/name: keycloak-clients
+spec:
+  schedule: "0 * * * *"
+  concurrencyPolicy: Forbid
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/part-of: kids-games
+            app.kubernetes.io/managed-by: argocd
+            app.kubernetes.io/name: keycloak-clients
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: client-sync
+              image: python:3.11-alpine
+              imagePullPolicy: IfNotPresent
+              command: ["python", "/app/sync.py"]
+              env:
+                - name: KEYCLOAK_URL
+                  value: https://keycloak.family.home.arpa
+                - name: KEYCLOAK_ADMIN_REALM
+                  value: master
+                - name: KEYCLOAK_REALM
+                  value: homelab
+                - name: KEYCLOAK_CLIENT_ID
+                  value: homelab-apps
+                - name: DESIRED_REDIRECT_URIS
+                  value: >-
+                    ["https://moodle.family.home.arpa/*", "https://kolibri.family.home.arpa/*", "https://boardgames.family.home.arpa/*", "https://openedx.family.home.arpa/*", "https://studio.openedx.family.home.arpa/*"]
+                - name: DESIRED_WEB_ORIGINS
+                  value: >-
+                    ["https://moodle.family.home.arpa", "https://kolibri.family.home.arpa", "https://boardgames.family.home.arpa", "https://openedx.family.home.arpa", "https://studio.openedx.family.home.arpa"]
+                - name: KEYCLOAK_INSECURE_SKIP_VERIFY
+                  value: "true"
+                - name: KEYCLOAK_CA_BUNDLE
+                  valueFrom:
+                    configMapKeyRef:
+                      name: keycloak-oidc-ca
+                      key: ca.crt
+                      optional: true
+                - name: KEYCLOAK_ADMIN_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: keycloak-initial-admin
+                      key: username
+                - name: KEYCLOAK_ADMIN_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: keycloak-initial-admin
+                      key: password
+                - name: KEYCLOAK_CLIENT_SECRET
+                  valueFrom:
+                    secretKeyRef:
+                      name: keycloak-oidc-client
+                      key: client-secret
+                      optional: true
+              volumeMounts:
+                - name: script
+                  mountPath: /app
+                  readOnly: true
+          volumes:
+            - name: script
+              configMap:
+                name: kids-games-keycloak-client-sync
+                defaultMode: 0555

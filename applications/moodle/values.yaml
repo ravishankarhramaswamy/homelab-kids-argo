@@ -1,0 +1,67 @@
+# Wrapper values for the upstream Moodle chart.
+# All homelab-specific values are centralized here.
+
+moodle:
+  image:
+    registry: ghcr.io
+    repository: ravishankarhramaswamy/homelab-kids-moodle
+    tag: "latest"
+    pullPolicy: IfNotPresent
+  commonLabels:
+    app.kubernetes.io/part-of: kids-games
+    app.kubernetes.io/managed-by: argocd
+    app.kubernetes.io/name: moodle
+  fullnameOverride: moodle
+
+  # Initial admin settings. Password is read from existingSecret.
+  moodleUsername: admin
+  moodleEmail: admin@example.internal
+  existingSecret: moodle-secrets
+  allowEmptyPassword: false
+
+  persistence:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    size: 20Gi
+    storageClass: ""
+
+  # SMTP settings (password comes from existingSecret).
+  smtpHost: smtp.example.internal
+  smtpPort: 587
+  smtpUser: moodle@example.internal
+  smtpProtocol: tls
+
+  # Optional environment hooks for OIDC plugin configuration.
+  extraEnvVars:
+    - name: MOODLE_OIDC_ISSUER_URL
+      value: https://keycloak.family.home.arpa/realms/homelab
+    - name: MOODLE_OIDC_CLIENT_ID
+      value: homelab-apps
+  extraEnvVarsSecret: moodle-oidc
+
+  livenessProbe:
+    enabled: true
+  readinessProbe:
+    enabled: true
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+
+  mariadb:
+    enabled: true
+    auth:
+      existingSecret: moodle-mariadb
+      username: moodle
+      database: moodle
+
+gateway:
+  enabled: true
+  name: family-gateway
+  namespace: envoy-gateway-system
+  sectionName: https
+  host: moodle.family.home.arpa
+  serviceName: moodle
+  servicePort: 80
