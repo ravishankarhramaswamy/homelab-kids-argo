@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "wordpress-h5p.fullname" . }}
+  labels:
+    {{- include "wordpress-h5p.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "wordpress-h5p.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "wordpress-h5p.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/part-of: kids-games
+        app.kubernetes.io/managed-by: argocd
+        app.kubernetes.io/name: wordpress-h5p
+    spec:
+      initContainers:
+        - name: install-h5p
+          image: alpine:3.20
+          command:
+            - /bin/sh
+            - -c
+          args:
+            - |
+              set -eu
+              if [ "{{ .Values.h5p.enabled }}" != "true" ]; then
+                echo "H5P install disabled"
+                exit 0
+              fi
+              PLUGINS_DIR="/var/www/html/wp-content/plugins"
+              mkdir -p "${PLUGINS_DIR}"
+              if [ ! -d "${PLUGINS_DIR}/h5p" ]; then
+                apk add --no-cache curl unzip >/dev/null
+                curl -fsSL "{{ .Values.h5p.pluginUrl }}" -o /tmp/h5p.zip
+                unzip -q /tmp/h5p.zip -d "${PLUGINS_DIR}"
+                rm -f /tmp/h5p.zip
+              fi
+          volumeMounts:
+            - name: wordpress-data
+              mountPath: /var/www/html
+      containers:
+        - name: wordpress
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+          env:
+            - name: WORDPRESS_DB_HOST
+              value: {{ .Values.db.host | quote }}
+            - name: WORDPRESS_DB_NAME
+              value: {{ .Values.db.name | quote }}
+            - name: WORDPRESS_DB_USER
+              value: {{ .Values.db.user | quote }}
+            - name: WORDPRESS_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wordpress-mariadb
+                  key: mariadb-password
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: wordpress-data
+              mountPath: /var/www/html
+      volumes:
+        - name: wordpress-data
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "wordpress-h5p.fullname" . }}
+          {{- else }}
+          emptyDir: {}
+          {{- end }}

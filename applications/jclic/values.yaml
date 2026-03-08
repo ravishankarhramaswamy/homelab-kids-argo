@@ -1,0 +1,38 @@
+replicaCount: 1
+
+fullnameOverride: jclic
+
+image:
+  repository: nginx
+  tag: "1.27-alpine"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+content:
+  title: "JClic.js Activities"
+  subtitle: "Interactive puzzles and classroom-style activities"
+  jclicScriptUrl: "https://cdn.jsdelivr.net/npm/jclic@latest/dist/jclic.min.js"
+  jclicCssUrl: "https://cdn.jsdelivr.net/npm/jclic@latest/dist/jclic.min.css"
+  projectUrl: ""
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: ""
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 128Mi
+
+gateway:
+  enabled: true
+  name: family-gateway
+  namespace: envoy-gateway-system
+  sectionName: https
+  host: jclic.family.home.arpa
+  serviceName: jclic
+  servicePort: 80

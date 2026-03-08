@@ -1,11 +1,10 @@
 # Architecture
 
-This repository is a GitOps layout for a homelab Argo CD deployment that manages four applications:
+This repository is a GitOps layout for a homelab Argo CD deployment that manages three kid-focused applications:
 
-- Moodle (Helm dependency wrapper)
-- Kolibri (local Helm chart)
+- WordPress + H5P (local Helm chart)
 - VirtualTabletop (local Helm chart + oauth2-proxy)
-- Open edX (rendered manifests managed by Kustomize)
+- JClic.js (local Helm chart, static launcher)
 
 ## Control plane
 - Argo CD runs in the `argocd` namespace.
@@ -16,10 +15,9 @@ This repository is a GitOps layout for a homelab Argo CD deployment that manages
 - ApplicationSet discovers apps from `applications/*` and renders one child Application per directory.
 
 ## Namespaces
-- `games-moodle`
-- `games-kolibri`
+- `games-wordpress-h5p`
 - `games-virtualtabletop`
-- `games-openedx`
+- `games-jclic`
 
 Namespaces are created automatically via `CreateNamespace=true`.
 
@@ -33,7 +31,3 @@ Namespaces are created automatically via `CreateNamespace=true`.
 - Secrets are not stored in Git.
 - Example secret manifests live in `shared/secrets/examples/`.
 - Actual secret files should be created out of band and are gitignored.
-
-## Open edX workflow
-- Open edX manifests are rendered via Tutor and committed to `applications/openedx/rendered/`.
-- Argo CD syncs the rendered output via Kustomize.

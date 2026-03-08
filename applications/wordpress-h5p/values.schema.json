@@ -1,0 +1,80 @@
+{
+  "$schema": "http://json-schema.org/schema#",
+  "type": "object",
+  "properties": {
+    "replicaCount": {"type": "integer", "minimum": 1},
+    "fullnameOverride": {"type": "string"},
+    "image": {
+      "type": "object",
+      "properties": {
+        "repository": {"type": "string"},
+        "tag": {"type": "string"},
+        "pullPolicy": {"type": "string"}
+      },
+      "required": ["repository", "tag"]
+    },
+    "service": {
+      "type": "object",
+      "properties": {
+        "type": {"type": "string"},
+        "port": {"type": "integer"}
+      }
+    },
+    "db": {
+      "type": "object",
+      "properties": {
+        "host": {"type": "string"},
+        "name": {"type": "string"},
+        "user": {"type": "string"}
+      }
+    },
+    "h5p": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "pluginUrl": {"type": "string"}
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "size": {"type": "string"},
+        "storageClass": {"type": "string"}
+      }
+    },
+    "mariadb": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "image": {
+          "type": "object",
+          "properties": {
+            "repository": {"type": "string"},
+            "tag": {"type": "string"},
+            "pullPolicy": {"type": "string"}
+          }
+        },
+        "persistence": {
+          "type": "object",
+          "properties": {
+            "size": {"type": "string"},
+            "storageClass": {"type": "string"}
+          }
+        }
+      }
+    },
+    "gateway": {
+      "type": "object",
+      "properties": {
+        "enabled": {"type": "boolean"},
+        "name": {"type": "string"},
+        "namespace": {"type": "string"},
+        "sectionName": {"type": "string"},
+        "host": {"type": "string"},
+        "serviceName": {"type": "string"},
+        "servicePort": {"type": "integer"}
+      }
+    }
+  }
+}

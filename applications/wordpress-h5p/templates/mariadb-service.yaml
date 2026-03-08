@@ -1,0 +1,18 @@
+{{- if .Values.mariadb.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "wordpress-h5p.fullname" . }}-mariadb
+  labels:
+    {{- include "wordpress-h5p.labels" . | nindent 4 }}
+    app.kubernetes.io/component: mariadb
+spec:
+  clusterIP: None
+  ports:
+    - name: mysql
+      port: 3306
+      targetPort: mysql
+  selector:
+    app.kubernetes.io/component: mariadb
+    {{- include "wordpress-h5p.selectorLabels" . | nindent 4 }}
+{{- end }}

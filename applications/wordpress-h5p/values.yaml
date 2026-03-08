@@ -1,0 +1,51 @@
+replicaCount: 1
+
+fullnameOverride: wordpress-h5p
+
+image:
+  repository: wordpress
+  tag: "6.9.1-php8.2-apache"
+  pullPolicy: IfNotPresent
+
+service:
+  type: ClusterIP
+  port: 80
+
+db:
+  host: wordpress-h5p-mariadb
+  name: wordpress
+  user: wordpress
+
+wordpress:
+h5p:
+  enabled: true
+  pluginUrl: "https://downloads.wordpress.org/plugin/h5p.zip"
+
+persistence:
+  enabled: true
+  size: 10Gi
+  storageClass: ""
+
+mariadb:
+  enabled: true
+  image:
+    repository: mariadb
+    tag: "11.4"
+    pullPolicy: IfNotPresent
+  persistence:
+    size: 8Gi
+    storageClass: ""
+
+resources:
+  requests:
+    cpu: 200m
+    memory: 512Mi
+
+gateway:
+  enabled: true
+  name: family-gateway
+  namespace: envoy-gateway-system
+  sectionName: https
+  host: h5p.family.home.arpa
+  serviceName: wordpress-h5p
+  servicePort: 80

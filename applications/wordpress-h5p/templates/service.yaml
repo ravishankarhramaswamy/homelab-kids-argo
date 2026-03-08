@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "wordpress-h5p.fullname" . }}
+  labels:
+    {{- include "wordpress-h5p.labels" . | nindent 4 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - name: http
+      port: {{ .Values.service.port }}
+      targetPort: http
+  selector:
+    {{- include "wordpress-h5p.selectorLabels" . | nindent 4 }}

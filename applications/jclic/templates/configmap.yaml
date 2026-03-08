@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "jclic.fullname" . }}-content
+  labels:
+    {{- include "jclic.labels" . | nindent 4 }}
+    app.kubernetes.io/component: content
+    app.kubernetes.io/name: jclic
+
+data:
+  index.html: |
+    <!doctype html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>{{ .Values.content.title }}</title>
+        <link rel="stylesheet" href="{{ .Values.content.jclicCssUrl }}" />
+        <style>
+          body { font-family: "Trebuchet MS", sans-serif; margin: 2rem; background: #f6f7fb; color: #1f2a37; }
+          header { max-width: 900px; margin: 0 auto 2rem; }
+          .card { background: #fff; border-radius: 16px; padding: 1.5rem; box-shadow: 0 10px 30px rgba(17, 24, 39, 0.08); }
+          code { background: #f1f5f9; padding: 0.15rem 0.4rem; border-radius: 6px; }
+          #player { margin-top: 1.5rem; min-height: 480px; }
+        </style>
+      </head>
+      <body>
+        <header>
+          <h1>{{ .Values.content.title }}</h1>
+          <p>{{ .Values.content.subtitle }}</p>
+        </header>
+        <section class="card">
+          <p>Upload JClic activity packages (ending in <code>.jclic.zip</code>) into the <code>/activities</code> folder.</p>
+          <p>Then set <code>content.projectUrl</code> in values.yaml, for example:</p>
+          <p><code>/activities/my-activity.jclic.zip</code></p>
+          <div id="player">JClic player will appear here after configuration.</div>
+        </section>
+        <script src="{{ .Values.content.jclicScriptUrl }}"></script>
+        <script>
+          (function () {
+            var projectUrl = "{{ .Values.content.projectUrl }}";
+            if (!projectUrl) {
+              return;
+            }
+            var containerId = "player";
+            try {
+              if (window.JClic && typeof window.JClic.load === "function") {
+                window.JClic.load(projectUrl, containerId);
+              } else if (window.Jclic && typeof window.Jclic.load === "function") {
+                window.Jclic.load(projectUrl, containerId);
+              } else {
+                document.getElementById(containerId).innerText = "JClic.js loaded, but auto-load is not configured. Update index.html to match your JClic.js build.";
+              }
+            } catch (err) {
+              console.error(err);
+              document.getElementById(containerId).innerText = "Failed to initialize JClic.js. Check console for details.";
+            }
+          })();
+        </script>
+      </body>
+    </html>

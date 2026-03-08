@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "jclic.fullname" . }}
+  labels:
+    {{- include "jclic.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "jclic.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "jclic.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/part-of: kids-games
+        app.kubernetes.io/managed-by: argocd
+        app.kubernetes.io/name: jclic
+    spec:
+      containers:
+        - name: jclic
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: 80
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: content
+              mountPath: /usr/share/nginx/html/index.html
+              subPath: index.html
+            - name: activities
+              mountPath: /usr/share/nginx/html/activities
+      volumes:
+        - name: content
+          configMap:
+            name: {{ include "jclic.fullname" . }}-content
+        - name: activities
+          {{- if .Values.persistence.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "jclic.fullname" . }}-activities
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
