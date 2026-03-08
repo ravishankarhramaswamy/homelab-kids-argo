@@ -1,7 +1,7 @@
 replicaCount: 1
 
 image:
-  repository: beyondrealm/virtualtabletop
+  repository: arnoldsmith86/virtualtabletop
   tag: "latest"
   pullPolicy: IfNotPresent
 

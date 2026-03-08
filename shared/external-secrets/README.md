@@ -65,7 +65,7 @@ vault kv put secret/homelab/kids-games/kolibri-oidc \
 # VirtualTabletop (oauth2-proxy)
 vault kv put secret/homelab/kids-games/virtualtabletop-oauth2-proxy \
   client-secret=CHANGE_ME \
-  cookie-secret=CHANGE_ME
+  cookie-secret=CHANGE_ME  # must be 16, 24, or 32 bytes (32 chars recommended)
 
 # Open edX
 vault kv put secret/homelab/kids-games/openedx-secrets \

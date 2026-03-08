@@ -7,12 +7,13 @@ Local Helm chart that deploys VirtualTabletop and protects it with an in-cluster
 - Namespace: `games-virtualtabletop`
 - Routing: Gateway API `HTTPRoute` via Envoy Gateway (`family-gateway`)
 - oauth2-proxy is deployed in the same namespace and exposed on `/oauth2` under the same hostname.
+- Image: `arnoldsmith86/virtualtabletop:latest`
 
 ## Secrets
 Create this secret out of band (see examples in `shared/secrets/examples/`):
 - `virtualtabletop-oauth2-proxy`
   - `client-secret`
-  - `cookie-secret`
+  - `cookie-secret` (must be 16, 24, or 32 bytes)
 
 ## Auth flow
 - Envoy Gateway routes `/oauth2/*` to oauth2-proxy and `/` to VirtualTabletop.
