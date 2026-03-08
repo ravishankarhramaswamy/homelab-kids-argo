@@ -17,13 +17,11 @@ spec:
   destinations:
     - namespace: argocd
       server: https://kubernetes.default.svc
-    - namespace: games-moodle
-      server: https://kubernetes.default.svc
-    - namespace: games-kolibri
-      server: https://kubernetes.default.svc
     - namespace: games-virtualtabletop
       server: https://kubernetes.default.svc
-    - namespace: games-openedx
+    - namespace: games-wordpress-h5p
+      server: https://kubernetes.default.svc
+    - namespace: games-jclic
       server: https://kubernetes.default.svc
     - namespace: keycloak
       server: https://kubernetes.default.svc

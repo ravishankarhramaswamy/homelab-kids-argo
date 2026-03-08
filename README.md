@@ -1,10 +1,9 @@
 # homelab-kids-argo
 
-A production-leaning GitOps repository for deploying a kids-oriented learning and games stack via Argo CD. It manages four apps:
-- Moodle
-- Kolibri
-- VirtualTabletop
-- Open edX
+A production-leaning GitOps repository for a kids entertainment stack via Argo CD. It manages three apps:
+- WordPress + H5P (activities, quizzes, puzzles)
+- VirtualTabletop (board and card games, protected by oauth2-proxy)
+- JClic.js (structured educational puzzles)
 
 ## What this repo is for
 - A clean, extendable Argo CD GitOps layout.
@@ -17,7 +16,6 @@ A production-leaning GitOps repository for deploying a kids-oriented learning an
 - TLS is managed by cert-manager or equivalent (`gateway-tls` secret).
 - Keycloak is the identity provider for OIDC (`https://keycloak.family.home.arpa/realms/homelab`).
 - The Keycloak hostname resolves and is TLS-trusted from inside the cluster.
-- Custom images are pushed to `ghcr.io/ravishankarhramaswamy/` with tags you control (defaults set to `latest`).
 
 ## Architecture summary
 - `bootstrap/root-application.yaml` bootstraps the repo into Argo CD.
@@ -29,10 +27,11 @@ A production-leaning GitOps repository for deploying a kids-oriented learning an
 ## Folder structure
 ```
 bootstrap/                Argo CD AppProject, ApplicationSet, root app
-applications/             App definitions (Helm and Kustomize)
-images/                   Custom Dockerfiles for Moodle and Kolibri
+applications/             App definitions (Helm)
+applications-disabled/    Disabled apps kept for reference
+images-disabled/          Disabled custom images
 shared/                   Shared manifests and secret examples
-scripts/                  Bootstrap, validation, and render helpers
+scripts/                  Bootstrap and validation helpers
 docs/                     Architecture and SSO documentation
 ```
 
@@ -55,29 +54,22 @@ The root application is defined in `bootstrap/root-application.yaml`. Apply it o
 
 ## Secrets (out of band)
 Secrets are not committed to Git. Example manifests live in `shared/secrets/examples/`:
-- `moodle-secrets.example.yaml`
-- `kolibri-secrets.example.yaml`
+- `wordpress-mariadb.example.yaml`
 - `virtualtabletop-oauth2-proxy-secrets.example.yaml`
-- `openedx-secrets.example.yaml`
 - `keycloak-oidc-client.example.yaml`
 
 Real secret manifests should be created separately and are gitignored.
 
 ## External Secrets + Vault (ESO)
-This repo includes ESO resources under `shared/external-secrets/` that pull secrets from Vault at `https://vault.family.home.arpa`.
+This repo includes ESO resources under `shared/external-secrets/` that pull secrets from Vault at `http://vault.vault.svc.cluster.local:8200`.
 See `shared/external-secrets/README.md` for the Vault policy, Kubernetes auth role, and `vault kv put` commands.
 
-## Open edX differences
-Open edX is managed as rendered manifests (Kustomize) rather than a Helm chart. Use `scripts/render-openedx.sh` to render with Tutor and commit the output to `applications/openedx/rendered/`.
-
 ## Known limitations
-- Pin image tags and update image repositories if you do not use GHCR under the same GitHub owner.
-- Custom images for Moodle and Kolibri must be built and pushed.
-- Open edX requires local Tutor configuration and rendering before Argo CD can sync.
+- WordPress uses the official image and expects the admin account to be created via the web installer.
+- JClic.js ships as a static launcher; you must provide `.jclic.zip` activities under `/activities`.
 - Keycloak realm import is still managed by Terraform; the Argo client sync only appends redirect URIs and web origins.
 
 ## Next steps
 - Update hostnames and Gateway API settings in app values.
 - Create secrets from the example templates.
-- Build and push the custom images.
-- Render Open edX manifests and commit them.
+- Upload JClic activities and set `content.projectUrl` in `applications/jclic/values.yaml`.

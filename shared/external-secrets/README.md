@@ -46,40 +46,19 @@ vault write auth/kubernetes/role/kids-games-eso \
 Create the KV secrets with the keys expected by each app:
 
 ```
-# Moodle
-vault kv put secret/homelab/kids-games/moodle-secrets \
-  moodle-password=CHANGE_ME \
-  smtp-password=CHANGE_ME
-
-vault kv put secret/homelab/kids-games/moodle-mariadb \
+# WordPress + H5P
+vault kv put secret/homelab/kids-games/wordpress-mariadb \
   mariadb-root-password=CHANGE_ME \
   mariadb-password=CHANGE_ME
-
-vault kv put secret/homelab/kids-games/moodle-oidc \
-  MOODLE_OIDC_CLIENT_SECRET=CHANGE_ME
-
-# Kolibri
-vault kv put secret/homelab/kids-games/kolibri-oidc \
-  client-secret=CHANGE_ME
 
 # VirtualTabletop (oauth2-proxy)
 vault kv put secret/homelab/kids-games/virtualtabletop-oauth2-proxy \
   client-secret=CHANGE_ME \
   cookie-secret=CHANGE_ME  # must be 16, 24, or 32 bytes (32 chars recommended)
-
-# Open edX
-vault kv put secret/homelab/kids-games/openedx-secrets \
-  OPENEDX_SUPERUSER_PASSWORD=CHANGE_ME \
-  MYSQL_ROOT_PASSWORD=CHANGE_ME \
-  SMTP_PASSWORD=CHANGE_ME
 ```
 
 ## What gets created
 - `ClusterSecretStore` named `vault-homelab`
-- `ExternalSecret` resources in each app namespace for:
-- `moodle-secrets`, `kids-games-moodle-mariadb`, `moodle-oidc`
-  - `kolibri-oidc`
-  - `virtualtabletop-oauth2-proxy`
-  - `openedx-secrets`
+- ExternalSecret resources for `wordpress-mariadb` and `virtualtabletop-oauth2-proxy`.
 
 If you change the Vault path or mount, update `clustersecretstore-vault.yaml` and the ExternalSecret `remoteRef.key` values.

@@ -14,8 +14,6 @@ tmp/
 node_modules/
 __pycache__/
 *.pyc
-applications/openedx/rendered/tmp/
-applications/openedx/rendered/**/*.bak
 dist/
 build/
 coverage/

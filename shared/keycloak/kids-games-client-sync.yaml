@@ -192,10 +192,10 @@ spec:
                   optional: true
             - name: DESIRED_REDIRECT_URIS
               value: >-
-                ["https://moodle.family.home.arpa/*", "https://kolibri.family.home.arpa/*", "https://boardgames.family.home.arpa/*", "https://openedx.family.home.arpa/*", "https://studio.openedx.family.home.arpa/*"]
+                ["https://boardgames.family.home.arpa/*"]
             - name: DESIRED_WEB_ORIGINS
               value: >-
-                ["https://moodle.family.home.arpa", "https://kolibri.family.home.arpa", "https://boardgames.family.home.arpa", "https://openedx.family.home.arpa", "https://studio.openedx.family.home.arpa"]
+                ["https://boardgames.family.home.arpa"]
             - name: KEYCLOAK_ADMIN_USER
               valueFrom:
                 secretKeyRef:
@@ -261,10 +261,10 @@ spec:
                   value: homelab-apps
                 - name: DESIRED_REDIRECT_URIS
                   value: >-
-                    ["https://moodle.family.home.arpa/*", "https://kolibri.family.home.arpa/*", "https://boardgames.family.home.arpa/*", "https://openedx.family.home.arpa/*", "https://studio.openedx.family.home.arpa/*"]
+                    ["https://boardgames.family.home.arpa/*"]
                 - name: DESIRED_WEB_ORIGINS
                   value: >-
-                    ["https://moodle.family.home.arpa", "https://kolibri.family.home.arpa", "https://boardgames.family.home.arpa", "https://openedx.family.home.arpa", "https://studio.openedx.family.home.arpa"]
+                    ["https://boardgames.family.home.arpa"]
                 - name: KEYCLOAK_INSECURE_SKIP_VERIFY
                   value: "true"
                 - name: KEYCLOAK_CA_BUNDLE
