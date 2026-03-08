@@ -4,11 +4,12 @@ This directory defines External Secrets Operator resources that pull app secrets
 
 ## Assumptions
 - ESO is installed in the `external-secrets` namespace and uses the `external-secrets` ServiceAccount.
-- Vault is reachable at `https://vault.family.home.arpa` from inside the cluster.
+- Vault is reachable in-cluster via `http://vault.vault.svc.cluster.local:8200`.
+  If your Service name/namespace differ, update `clustersecretstore-vault.yaml`.
 - Vault KV v2 mount is `secret`.
 - Kids-games secrets live under `secret/homelab/kids-games/*`.
-- Vault TLS is not trusted by default in-cluster, so the SecretStore uses `insecureSkipVerify: true`.
-  Replace with a CA bundle if you want strict TLS.
+- If you need to use the external hostname instead, ensure CoreDNS can resolve it from inside the cluster
+  or add a stub domain, and configure TLS trust as needed.
 
 ## Vault policy
 Create a Vault policy that allows read access to the kids-games paths:
