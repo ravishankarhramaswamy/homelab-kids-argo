@@ -57,6 +57,10 @@ moodle:
 
   mariadb:
     enabled: true
+    image:
+      registry: docker.io
+      repository: bitnamilegacy/mariadb
+      tag: "11.4.5-debian-12-r12"
     auth:
       existingSecret: moodle-mariadb
       username: moodle
