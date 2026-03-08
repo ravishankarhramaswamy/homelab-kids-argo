@@ -16,6 +16,9 @@ Then set `content.projectUrl` in `values.yaml`, for example:
 /activities/my-activity.jclic.zip
 ```
 
+This chart ships with a default demo activity URL so it renders immediately. Override it
+to point at your own activity packs.
+
 ## Notes
 - The included index page loads JClic.js from a CDN. Update the script URLs if you want to self-host the library.
 - If you disable persistence, activities must be copied into the pod on every restart.

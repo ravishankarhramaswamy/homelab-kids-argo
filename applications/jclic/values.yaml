@@ -16,7 +16,7 @@ content:
   subtitle: "Interactive puzzles and classroom-style activities"
   jclicScriptUrl: "https://cdn.jsdelivr.net/npm/jclic@latest/dist/jclic.min.js"
   jclicCssUrl: "https://cdn.jsdelivr.net/npm/jclic@latest/dist/jclic.min.css"
-  projectUrl: ""
+  projectUrl: "https://clic.xtec.cat/projects/demo_eng/jclic/demo.jclic.zip"
 
 persistence:
   enabled: true
