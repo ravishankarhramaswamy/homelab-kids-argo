@@ -12,7 +12,7 @@ data:
   OAUTH2_PROXY_CLIENT_ID: "{{ .Values.oauth2Proxy.oidc.clientID }}"
   OAUTH2_PROXY_REDIRECT_URL: "https://{{ .Values.gateway.host }}/oauth2/callback"
   OAUTH2_PROXY_HTTP_ADDRESS: "0.0.0.0:{{ .Values.oauth2Proxy.port }}"
-  OAUTH2_PROXY_UPSTREAMS: "http://{{ include \"virtualtabletop.fullname\" . }}:{{ .Values.service.port }}"
+  OAUTH2_PROXY_UPSTREAMS: {{ printf "http://%s:%v" (include "virtualtabletop.fullname" .) .Values.service.port | quote }}
   OAUTH2_PROXY_COOKIE_DOMAIN: "{{ .Values.oauth2Proxy.cookie.domain }}"
   OAUTH2_PROXY_COOKIE_SECURE: "{{ .Values.oauth2Proxy.cookie.secure }}"
   OAUTH2_PROXY_EMAIL_DOMAINS: "{{ join "," .Values.oauth2Proxy.emailDomains }}"

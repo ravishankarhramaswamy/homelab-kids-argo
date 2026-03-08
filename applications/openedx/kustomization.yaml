@@ -5,7 +5,8 @@ resources:
 
 namespace: games-openedx
 
-commonLabels:
-  app.kubernetes.io/part-of: kids-games
-  app.kubernetes.io/managed-by: argocd
-  app.kubernetes.io/name: openedx
+labels:
+  - pairs:
+      app.kubernetes.io/part-of: kids-games
+      app.kubernetes.io/managed-by: argocd
+      app.kubernetes.io/name: openedx
