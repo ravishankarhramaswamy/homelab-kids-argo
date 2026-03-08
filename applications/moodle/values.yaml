@@ -1,6 +1,11 @@
 # Wrapper values for the upstream Moodle chart.
 # All homelab-specific values are centralized here.
 
+global:
+  security:
+    # Required when using a custom Moodle image with Bitnami chart.
+    allowInsecureImages: true
+
 moodle:
   image:
     registry: ghcr.io
