@@ -25,7 +25,16 @@ mkdir -p "${RENDER_DIR}" "${RENDER_DIR}/tmp/secrets" "${RENDER_DIR}/tmp/ingress"
 echo "Rendering Open edX manifests with Tutor..."
 tutor config save --set LMS_HOST="${OPENEDX_LMS_HOST}" --set CMS_HOST="${OPENEDX_CMS_HOST}"
 
-tutor k8s render --output "${SCRATCH_DIR}"
+TUTOR_ROOT="$(tutor config printroot)"
+K8S_DIR="${TUTOR_ROOT}/env/k8s"
+
+if [ ! -d "${K8S_DIR}" ]; then
+  echo "ERROR: Expected Tutor k8s manifests in ${K8S_DIR}, but directory does not exist." >&2
+  echo "Run 'tutor config save' and ensure Tutor is configured for k8s." >&2
+  exit 1
+fi
+
+cp -R "${K8S_DIR}/." "${SCRATCH_DIR}/"
 
 # Remove Secret manifests from the rendered output to keep secrets out of Git.
 # Move any detected Secret manifests into rendered/tmp/secrets for manual handling.
@@ -135,7 +144,7 @@ else
   echo "WARNING: Could not detect LMS/CMS services for Open edX. HTTPRoutes not generated." >&2
 fi
 
-rendered_files="$(find "${RENDER_DIR}" -type f \\( -name \"*.yaml\" -o -name \"*.yml\" \\) ! -path \"${RENDER_DIR}/tmp/*\" ! -name \"kustomization.yaml\" | sed \"s#${RENDER_DIR}/##\" | sort)"
+rendered_files="$(find "${RENDER_DIR}" -type f \( -name "*.yaml" -o -name "*.yml" \) ! -path "${RENDER_DIR}/tmp/*" ! -name "kustomization.yaml" | sed "s#${RENDER_DIR}/##" | sort)"
 if [ -n "${rendered_files}" ]; then
   {
     echo "apiVersion: kustomize.config.k8s.io/v1beta1"

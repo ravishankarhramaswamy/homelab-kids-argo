@@ -12,7 +12,7 @@ Create these secrets out of band (see examples in `shared/secrets/examples/`):
 - `moodle-secrets`
   - `moodle-password` (admin password)
   - `smtp-password` (SMTP password, optional if you do not use SMTP)
-- `moodle-mariadb`
+- `kids-games-moodle-mariadb`
   - `mariadb-root-password`
   - `mariadb-password`
 - `moodle-oidc`

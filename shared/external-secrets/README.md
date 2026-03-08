@@ -77,7 +77,7 @@ vault kv put secret/homelab/kids-games/openedx-secrets \
 ## What gets created
 - `ClusterSecretStore` named `vault-homelab`
 - `ExternalSecret` resources in each app namespace for:
-  - `moodle-secrets`, `moodle-mariadb`, `moodle-oidc`
+- `moodle-secrets`, `kids-games-moodle-mariadb`, `moodle-oidc`
   - `kolibri-oidc`
   - `virtualtabletop-oauth2-proxy`
   - `openedx-secrets`
