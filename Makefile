@@ -8,7 +8,7 @@ help:
 	@echo "  validate         Run local validation (helm/kustomize/yaml)"
 	@echo "  bootstrap-print  Print kubectl commands for bootstrap"
 	@echo "  render-openedx   Render Open edX manifests into applications/openedx/rendered"
-	@echo "  image-moodle     Build and push Moodle image"
+	@echo "  image-moodle     Build and push Moodle image (set MOODLE_USE_BUILDX=1 for buildx)"
 	@echo "  image-kolibri    Build and push Kolibri image"
 	@echo "  images           Build and push all custom images"
 	@echo "  lint             Alias for validate"
@@ -38,6 +38,9 @@ MOODLE_IMAGE ?= $(REGISTRY)/ravishankarhramaswamy/homelab-kids-moodle:$(IMAGE_TA
 KOLIBRI_IMAGE ?= $(REGISTRY)/ravishankarhramaswamy/homelab-kids-kolibri:$(IMAGE_TAG)
 
 MOODLE_BUILD_ARGS :=
+ifneq ($(strip $(MOODLE_BASE_IMAGE)),)
+MOODLE_BUILD_ARGS += --build-arg BASE_IMAGE="$(MOODLE_BASE_IMAGE)"
+endif
 ifneq ($(strip $(MOODLE_PLUGIN_URLS)),)
 MOODLE_BUILD_ARGS += --build-arg MOODLE_PLUGIN_URLS="$(MOODLE_PLUGIN_URLS)"
 endif
@@ -48,11 +51,18 @@ KOLIBRI_BUILD_ARGS += --build-arg KOLIBRI_PLUGIN_PIP="$(KOLIBRI_PLUGIN_PIP)"
 endif
 
 image-moodle:
-	@$(DOCKER) buildx build \
-		--platform $(PLATFORM) \
-		$(MOODLE_BUILD_ARGS) \
-		-t $(MOODLE_IMAGE) \
-		--push images/moodle
+	@if [ "$(MOODLE_USE_BUILDX)" = "1" ]; then \
+		$(DOCKER) buildx build \
+			--platform $(PLATFORM) \
+			$(MOODLE_BUILD_ARGS) \
+			-t $(MOODLE_IMAGE) \
+			--push images/moodle; \
+	else \
+		DOCKER_BUILDKIT=0 $(DOCKER) build \
+			$(MOODLE_BUILD_ARGS) \
+			-t $(MOODLE_IMAGE) images/moodle; \
+		$(DOCKER) push $(MOODLE_IMAGE); \
+	fi
 
 image-kolibri:
 	@$(DOCKER) buildx build \

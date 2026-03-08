@@ -3,4 +3,4 @@ name: kolibri
 description: Kolibri learning platform with OIDC-ready container
 type: application
 version: 0.1.0
-appVersion: "0.16.0"
+appVersion: "66b8239a56ede39f3068ccb4550c99a3cc430779"

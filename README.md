@@ -63,6 +63,10 @@ Secrets are not committed to Git. Example manifests live in `shared/secrets/exam
 
 Real secret manifests should be created separately and are gitignored.
 
+## External Secrets + Vault (ESO)
+This repo includes ESO resources under `shared/external-secrets/` that pull secrets from Vault at `https://vault.family.home.arpa`.
+See `shared/external-secrets/README.md` for the Vault policy, Kubernetes auth role, and `vault kv put` commands.
+
 ## Open edX differences
 Open edX is managed as rendered manifests (Kustomize) rather than a Helm chart. Use `scripts/render-openedx.sh` to render with Tutor and commit the output to `applications/openedx/rendered/`.
 

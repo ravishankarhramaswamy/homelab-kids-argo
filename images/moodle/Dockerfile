@@ -1,4 +1,4 @@
-ARG BASE_IMAGE=bitnami/moodle:5.0.0-debian-12-r0
+ARG BASE_IMAGE=bitnamilegacy/moodle:5.0.2-debian-12-r2
 FROM ${BASE_IMAGE}
 
 USER root
