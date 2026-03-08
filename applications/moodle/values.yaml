@@ -11,7 +11,7 @@ moodle:
     registry: ghcr.io
     repository: ravishankarhramaswamy/homelab-kids-moodle
     tag: "latest"
-    pullPolicy: IfNotPresent
+    pullPolicy: Always
   commonLabels:
     app.kubernetes.io/part-of: kids-games
     app.kubernetes.io/managed-by: argocd
