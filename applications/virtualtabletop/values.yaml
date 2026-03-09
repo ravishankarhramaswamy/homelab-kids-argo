@@ -9,7 +9,7 @@ fullnameOverride: virtualtabletop
 
 service:
   type: ClusterIP
-  port: 8080
+  port: 8272
 
 gateway:
   enabled: true
@@ -18,7 +18,7 @@ gateway:
   sectionName: https
   host: boardgames.family.home.arpa
   serviceName: virtualtabletop
-  servicePort: 8080
+  servicePort: 8272
 
 # oauth2-proxy is deployed alongside the app and protected by the same hostname.
 oauth2Proxy:
@@ -36,6 +36,8 @@ oauth2Proxy:
     clientSecretKey: client-secret
     cookieSecretKey: cookie-secret
     allowedGroups: []
+  tls:
+    insecureSkipVerify: true
   cookie:
     domain: family.home.arpa
     secure: true

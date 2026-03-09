@@ -8,6 +8,7 @@ Local Helm chart that deploys VirtualTabletop and protects it with an in-cluster
 - Routing: Gateway API `HTTPRoute` via Envoy Gateway (`family-gateway`)
 - oauth2-proxy is deployed in the same namespace and exposed on `/oauth2` under the same hostname.
 - Image: `arnoldsmith86/virtualtabletop:latest`
+- The app listens on port `8272` by default (see `values.yaml`).
 
 ## Secrets
 Create this secret out of band (see examples in `shared/secrets/examples/`):
@@ -24,6 +25,9 @@ Create this secret out of band (see examples in `shared/secrets/examples/`):
 - Client and cookie secrets come from the `virtualtabletop-oauth2-proxy` Secret.
 - Use `oauth2Proxy.oidc.allowedGroups` in `values.yaml` if you want group-based access control.
  - This repo uses the shared `homelab-apps` client for kids-games apps.
+- If Keycloak uses a private CA, either:
+  - set `oauth2Proxy.tls.insecureSkipVerify: true` (default in this repo), or
+  - provide a trusted CA and disable insecure skip verify.
 
 ## Manual post-deploy steps
 - Confirm the VirtualTabletop container image tag you want to run and pin it in `values.yaml`.

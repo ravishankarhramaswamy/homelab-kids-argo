@@ -16,4 +16,5 @@ data:
   OAUTH2_PROXY_COOKIE_DOMAIN: "{{ .Values.oauth2Proxy.cookie.domain }}"
   OAUTH2_PROXY_COOKIE_SECURE: "{{ .Values.oauth2Proxy.cookie.secure }}"
   OAUTH2_PROXY_EMAIL_DOMAINS: "{{ join "," .Values.oauth2Proxy.emailDomains }}"
+  OAUTH2_PROXY_SSL_INSECURE_SKIP_VERIFY: "{{ .Values.oauth2Proxy.tls.insecureSkipVerify }}"
 {{- end }}

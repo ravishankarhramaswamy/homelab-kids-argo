@@ -10,6 +10,12 @@
       }
     },
     "fullnameOverride": { "type": "string" },
+    "service": {
+      "type": "object",
+      "properties": {
+        "port": { "type": "integer" }
+      }
+    },
     "gateway": {
       "type": "object",
       "properties": {
@@ -29,6 +35,12 @@
             "issuerURL": { "type": "string" },
             "clientID": { "type": "string" },
             "existingSecret": { "type": "string" }
+          }
+        },
+        "tls": {
+          "type": "object",
+          "properties": {
+            "insecureSkipVerify": { "type": "boolean" }
           }
         }
       }
