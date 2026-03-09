@@ -33,27 +33,18 @@ data:
           <p>Upload JClic activity packages (ending in <code>.jclic.zip</code>) into the <code>/activities</code> folder.</p>
           <p>Then set <code>content.projectUrl</code> in values.yaml, for example:</p>
           <p><code>/activities/my-activity.jclic.zip</code></p>
-          <div id="player">JClic player will appear here after configuration.</div>
+          <div id="player" class="JClic" data-project="{{ .Values.content.projectUrl }}">
+            JClic player will appear here after configuration.
+          </div>
         </section>
         <script src="{{ .Values.content.jclicScriptUrl }}"></script>
         <script>
           (function () {
             var projectUrl = "{{ .Values.content.projectUrl }}";
+            var container = document.getElementById("player");
             if (!projectUrl) {
-              return;
-            }
-            var containerId = "player";
-            try {
-              if (window.JClic && typeof window.JClic.load === "function") {
-                window.JClic.load(projectUrl, containerId);
-              } else if (window.Jclic && typeof window.Jclic.load === "function") {
-                window.Jclic.load(projectUrl, containerId);
-              } else {
-                document.getElementById(containerId).innerText = "JClic.js loaded, but auto-load is not configured. Update index.html to match your JClic.js build.";
-              }
-            } catch (err) {
-              console.error(err);
-              document.getElementById(containerId).innerText = "Failed to initialize JClic.js. Check console for details.";
+              container.classList.remove("JClic");
+              container.innerText = "No JClic project configured yet. Set content.projectUrl to load an activity.";
             }
           })();
         </script>
